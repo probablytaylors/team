@@ -49,3 +49,7 @@ address = "library-team@rust-lang.org"
 
 [[zulip-groups]]
 name = "T-libs"
+
+[[zulip-streams]]
+name = "t-libs/private"
+extra-teams = ["libs-api"]
