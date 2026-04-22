@@ -3,7 +3,7 @@ subteam-of = "launching-pad"
 
 [people]
 leads = ["nikomatsakis", "oli-obk", "davidtwco"]
-members = []
+members = ["nikomatsakis", "oli-obk", "davidtwco"]
 alumni = []
 
 [[github]]
