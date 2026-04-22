@@ -7,12 +7,12 @@ bots = ["rustbot", "renovate"]
 [access.teams]
 rustup = "maintain"
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "main"
 ci-checks = ["conclusion"]
 merge-queue = { enabled = true, method = "rebase" }
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "release/*"
 ci-checks = ["conclusion"]
 required-approvals = 0

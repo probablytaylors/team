@@ -831,7 +831,7 @@ pub(crate) struct Repo {
     pub bots: Vec<Bot>,
     pub access: RepoAccess,
     #[serde(default)]
-    pub branch_protections: Vec<BranchProtection>,
+    pub rulesets: Vec<Ruleset>,
     #[serde(default)]
     pub crates_io: Vec<CratesIoConfiguration>,
     #[serde(default)]
@@ -956,7 +956,7 @@ fn merge_queue_default_check_response_timeout_minutes() -> u32 {
 
 #[derive(serde::Deserialize, Debug)]
 #[serde(deny_unknown_fields, rename_all = "kebab-case")]
-pub(crate) struct BranchProtection {
+pub(crate) struct Ruleset {
     pub pattern: String,
     #[serde(default)]
     pub target: ProtectionTarget,

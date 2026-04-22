@@ -397,29 +397,27 @@ compiler = "write"
 octocat = "write"
 ```
 
-### Repository branch protections
+### Repository rulesets
 
-[Branch protections] restrict actions on specified branches. It is strongly encouraged to set up branch protections on the default branch (e.g. `main` or `master`).
+[Rulesets] restrict actions on specified branches or tags. It is strongly encouraged to set up a ruleset on the default branch (e.g. `main` or `master`).
 
-The behavior of branch protections depends on whether or not `bors` is enabled in the `bots` key mentioned above:
+The behavior of rulesets depends on whether or not `bors` is enabled in the `bots` key mentioned above:
 
 - If bors is not enabled, then the default will be to require at least one approving review (via GitHub's PR UI).
 - If bors is enabled, approvals via GitHub's UI is not required (since we count the `@bors r+` comment as an approval). Also, bors will be added to the "allowed pushers".
 
 Users with the "maintain" or "admin" role are allowed to merge PRs via the GitHub UI. If you have bors enabled, you should only give users the "write" role so that the "Merge" button is disabled, forcing the user to use the `@bors r+` comment instead.
 
-The branch protection requires a PR to push changes. You cannot push directly to the branch.
+Admins cannot override these rulesets. If an admin needs to do that, they will need to temporarily edit the repository ruleset in the GitHub settings.
 
-Admins cannot override these branch protections. If an admin needs to do that, they will need to temporarily edit the branch protection in the GitHub settings.
-
-[Branch protections]: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches
+[Rulesets]: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets
 
 ```toml
-# The branch protections (optional)
-[[branch-protections]]
-# The pattern matching the branches to be protected (required)
+# The repository rulesets (optional)
+[[rulesets]]
+# The pattern matching the branches or tags to be protected (required)
 pattern = "main"
-# Custom name for the GitHub ruleset created from this branch protection.
+# Custom name for the GitHub ruleset created from this entry.
 # If not specified, defaults to "Ruleset for <pattern>".
 # (optional)
 name = "My custom ruleset name"

@@ -5,7 +5,7 @@ bots = []
 
 [access.teams]
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "master"
 ci-checks = ["build-check", "rustfmt", "changelog-check", "clippy-check"]
 dismiss-stale-review = true

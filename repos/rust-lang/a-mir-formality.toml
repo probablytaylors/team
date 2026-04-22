@@ -10,7 +10,7 @@ lang-docs = "maintain"
 types = "maintain"
 formality = "maintain"
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "main"
 ci-checks = ["conclusion"]
 merge-queue = { enabled = true }

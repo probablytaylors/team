@@ -69,7 +69,7 @@ static CHECKS: &[Check<fn(&Data, &mut Vec<String>)>] = checks![
     validate_zulip_stream_extra_people,
     validate_repos,
     validate_archived_repos,
-    validate_branch_protections,
+    validate_rulesets,
     validate_environments,
     validate_trusted_publishing,
     validate_member_roles,
@@ -1193,125 +1193,122 @@ fn validate_environments(data: &Data, errors: &mut Vec<String>) {
     });
 }
 
-/// Validate that branch protections make sense in combination with used bots.
-fn validate_branch_protections(data: &Data, errors: &mut Vec<String>) {
+/// Validate that rulesets make sense in combination with used bots.
+fn validate_rulesets(data: &Data, errors: &mut Vec<String>) {
     let github_teams = data.github_teams();
 
     wrapper(data.repos(), errors, |repo, _| {
         let bors_configured = repo.bots.iter().any(|b| matches!(b, Bot::Bors));
         let mut pattern_counts = HashMap::new();
 
-        for protection in &repo.branch_protections {
+        for ruleset in &repo.rulesets {
             *pattern_counts
-                .entry((protection.target, protection.pattern.as_str()))
+                .entry((ruleset.target, ruleset.pattern.as_str()))
                 .or_insert(0usize) += 1;
         }
 
-        for protection in &repo.branch_protections {
-            let key = (protection.target, protection.pattern.as_str());
+        for ruleset in &repo.rulesets {
+            let key = (ruleset.target, ruleset.pattern.as_str());
             let occurrences = pattern_counts
                 .get(&key)
                 .with_context(|| format!("pattern_counts should contain the key {key:?}"))?;
-            if *occurrences > 1 && protection.name.is_none() {
+            if *occurrences > 1 && ruleset.name.is_none() {
                 bail!(
-                    r#"repo '{}' uses multiple {:?} protections with the pattern `{}`; when multiple protections share the same target and pattern, each protection must specify `name`"#,
+                    r#"repo '{}' uses multiple {:?} rulesets with the pattern `{}`; when multiple rulesets share the same target and pattern, each ruleset must specify `name`"#,
                     repo.name,
-                    protection.target,
-                    protection.pattern,
+                    ruleset.target,
+                    ruleset.pattern,
                 );
             }
 
-            for team in &protection.allowed_merge_teams {
+            for team in &ruleset.allowed_merge_teams {
                 let key = (repo.org.clone(), team.clone());
                 if !github_teams.contains(&key) {
                     bail!(
-                        r#"repo '{}' uses a branch protection for {} that mentions the '{}' github team; but that team does not seem to exist"#,
+                        r#"repo '{}' uses a ruleset for {} that mentions the '{}' github team; but that team does not seem to exist"#,
                         repo.name,
-                        protection.pattern,
+                        ruleset.pattern,
                         team
                     );
                 }
                 if !repo.access.teams.contains_key(team) {
                     bail!(
-                        r#"repo '{}' uses a branch protection for {} that has an allowed merge team '{}', but that team is not mentioned in [access.teams]"#,
+                        r#"repo '{}' uses a ruleset for {} that has an allowed merge team '{}', but that team is not mentioned in [access.teams]"#,
                         repo.name,
-                        protection.pattern,
+                        ruleset.pattern,
                         team
                     );
                 }
             }
 
-            if !protection.pr_required {
+            if !ruleset.pr_required {
                 // It does not make sense to use CI checks when a PR is not required, because with a
                 // CI check, it would not be possible to push into the branch without a PR anyway.
-                if !protection.ci_checks.is_empty() {
+                if !ruleset.ci_checks.is_empty() {
                     bail!(
-                        r#"repo '{}' uses a branch protection for {} that does not require a PR, but has non-empty `ci-checks`"#,
+                        r#"repo '{}' uses a ruleset for {} that does not require a PR, but has non-empty `ci-checks`"#,
                         repo.name,
-                        protection.pattern,
+                        ruleset.pattern,
                     );
                 }
-                if let Some(required_approvals) = protection.required_approvals
+                if let Some(required_approvals) = ruleset.required_approvals
                     && required_approvals > 0
                 {
                     bail!(
-                        r#"repo '{}' uses a branch protection for {} that does not require a PR, but `required-approvals` is greater than 0"#,
+                        r#"repo '{}' uses a ruleset for {} that does not require a PR, but `required-approvals` is greater than 0"#,
                         repo.name,
-                        protection.pattern,
+                        ruleset.pattern,
                     );
                 }
             }
 
-            if protection.require_up_to_date_branches && protection.ci_checks.is_empty() {
+            if ruleset.require_up_to_date_branches && ruleset.ci_checks.is_empty() {
                 bail!(
-                    r#"repo '{}' uses a branch protection for {} that enables `require-up-to-date-branches`, but has empty `ci-checks`"#,
+                    r#"repo '{}' uses a ruleset for {} that enables `require-up-to-date-branches`, but has empty `ci-checks`"#,
                     repo.name,
-                    protection.pattern,
+                    ruleset.pattern,
                 );
             }
 
-            if protection.merge_queue.enabled && protection.pattern.contains('*') {
+            if ruleset.merge_queue.enabled && ruleset.pattern.contains('*') {
                 bail!(
-                    r#"repo '{}' uses a GitHub rule for {} that enables `merge-queue`, but GitHub merge queues only support exact ref names patterns"#,
+                    r#"repo '{}' uses a ruleset for {} that enables `merge-queue`, but GitHub merge queues only support exact ref names patterns"#,
                     repo.name,
-                    protection.pattern,
+                    ruleset.pattern,
                 );
             }
 
-            if protection.require_linear_history
-                && protection.merge_queue.enabled
-                && protection.merge_queue.method == MergeQueueMethod::Merge
+            if ruleset.require_linear_history
+                && ruleset.merge_queue.enabled
+                && ruleset.merge_queue.method == MergeQueueMethod::Merge
             {
                 bail!(
-                    r"repo '{}' uses a branch protection for {} that requires linear commit history, but also requires a merge queue using the default merging method `merge`, which is not compatible",
+                    r"repo '{}' uses a ruleset for {} that requires linear commit history, but also requires a merge queue using the default merging method `merge`, which is not compatible",
                     repo.name,
-                    protection.pattern,
+                    ruleset.pattern,
                 );
             }
 
-            let managed_by_bors = protection
-                .allowed_merge_apps
-                .contains(&AllowedMergeApp::Bors);
+            let managed_by_bors = ruleset.allowed_merge_apps.contains(&AllowedMergeApp::Bors);
             if managed_by_bors {
                 if !bors_configured {
                     bail!(
-                        r#"repo '{}' uses bors to manage a branch protection for '{}', but bors is not enabled. Add "bors" to the `bots` array"#,
+                        r#"repo '{}' uses bors to manage a ruleset for '{}', but bors is not enabled. Add "bors" to the `bots` array"#,
                         repo.name,
-                        protection.pattern,
+                        ruleset.pattern,
                     );
                 }
-                if protection.required_approvals.is_some()
-                    || protection.dismiss_stale_review
-                    || !protection.pr_required
-                    || !protection.allowed_merge_teams.is_empty()
-                        && !protection.pattern.contains('*')
+                if ruleset.required_approvals.is_some()
+                    || ruleset.dismiss_stale_review
+                    || !ruleset.pr_required
+                    || !ruleset.allowed_merge_teams.is_empty() && !ruleset.pattern.contains('*')
                 {
                     bail!(
-                        r#"repo '{}' uses bors, but its branch protection for {} uses invalid
+                        r#"repo '{}' uses bors, but its ruleset for {} uses invalid
 attributes (`required-approvals`, `dismiss-stale-review`, `pr-required` or `allowed-merge-teams`).
 Please remove the attributes when using bors"#,
                         repo.name,
-                        protection.pattern,
+                        ruleset.pattern,
                     );
                 }
             }

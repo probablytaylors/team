@@ -5,7 +5,7 @@ bots = []
 
 [access.teams]
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "master"
 ci-checks = ["bors"]
 dismiss-stale-review = true

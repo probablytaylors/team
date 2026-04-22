@@ -8,7 +8,7 @@ bots = []
 libs = "write"
 libs-contributors = "write"
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "main"
 ci-checks = ["conclusion"]
 required-approvals = 0

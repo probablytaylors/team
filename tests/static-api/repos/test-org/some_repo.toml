@@ -6,7 +6,7 @@ bots = []
 [access.teams]
 foo = "maintain"
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "master"
 ci-checks = ["CI"]
 allowed-merge-teams = ["foo"]

@@ -12,7 +12,7 @@ clippy = "triage"
 compiler = "triage"
 triage = "triage"
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "master"
 ci-checks = ["conclusion"]
 required-approvals = 0

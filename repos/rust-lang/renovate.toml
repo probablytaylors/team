@@ -6,7 +6,7 @@ bots = ["renovate"]
 [access.teams]
 infra = "write"
 
-[[branch-protections]]
+[[rulesets]]
 pattern = "main"
 ci-checks = ["Conclusion"]
 required-approvals = 0

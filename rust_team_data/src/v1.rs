@@ -173,6 +173,8 @@ pub struct Repo {
     pub bots: Vec<Bot>,
     pub teams: Vec<RepoTeam>,
     pub members: Vec<RepoMember>,
+    /// These are rulesets, not branch protections.
+    /// The name is unchanged to keep the API retro-compatible.
     pub branch_protections: Vec<BranchProtection>,
     pub crates: Vec<Crate>,
     pub environments: IndexMap<String, Environment>,

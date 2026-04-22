@@ -50,7 +50,7 @@ impl<'a> Generator<'a> {
 
         for (r, archived) in repo_iter {
             let branch_protections: Vec<_> = r
-                .branch_protections
+                .rulesets
                 .iter()
                 .map(|b| v1::BranchProtection {
                     pattern: b.pattern.clone(),
