@@ -8,7 +8,7 @@ bots = ["rustbot"]
 cargo = "write"
 
 [[rulesets]]
-pattern = "master"
+pattern = "main"
 ci-checks = ["Success gate"]
 required-approvals = 0
 merge-queue = { enabled = true, min-entries-to-merge-wait-minutes = 1 }
